@@ -1,8 +1,11 @@
 #!/usr/bin/env ruby
-# encoding: utf-8
 if ARGV.length == 1 then
 	s = File.new(ARGV[0], "r")
 else
+	puts "-- MarioLANG2 --\n"
+	puts "Usage: ./mariolang.rb file\n"
+	puts "Arguments\n"
+	puts "file - Text file containing MarioLANG2 code\n"
 	exit 1
 end
 def elevdir(code, posx, posy)
@@ -21,49 +24,78 @@ dirx = 1
 diry = 0
 elevator = false
 skip = 0
+loaded_string = ""
+recording_str = false
+last_stand_still = false
 loop {
 	if posy < 0 then
 		STDERR.print "Error: trying to get out of the program!\n"
 		exit 1
 	end
 	if skip == 0 then
-		case code[posy][posx]
-			when "\""
-				diry = -1
-				elevator = false
-			when ")"
-				varp += 1
-				vars << 0 if varp > varl
-			when "("
-				varp -= 1
-				if varp < 0 then
-					STDERR.print "Error: trying to access Memory Cell -1\n"
-					exit 1
-				end
-			when "+"
-				vars[varp] += 1
-			when "-"
-				vars[varp] -= 1
-			when "."
-				print vars[varp].chr
-			when ":"
-				print "#{vars[varp]} "
-			when ","
-				vars[varp] = STDIN.getc.ord
-			when ";"
-				vars[varp] = STDIN.gets.to_i
-			when ">"
-				dirx = 1
-			when "<"
-				dirx = -1
-			when "^"
-				diry = -1
-			when "!"
-				dirx = diry = 0
-			when "["
-				skip = 2 if vars[varp] == 0
-			when "@"
-				dirx = -dirx
+		if not recording_str then
+			if not code[posy][posx] == "!" then
+				last_stand_still = false
+			end
+			case code[posy][posx]
+				when "\""
+					diry = -1
+					elevator = false
+				when ")"
+					varp += 1
+					vars << 0 if varp > varl
+				when "("
+					varp -= 1
+					if varp < 0 then
+						STDERR.print "Error: trying to access Memory Cell -1\n"
+						exit 1
+					end
+				when "+"
+					vars[varp] += 1
+				when "-"
+					vars[varp] -= 1
+				when "."
+					print vars[varp].chr
+				when ":"
+					print "#{vars[varp]} "
+				when ","
+					vars[varp] = STDIN.getc.ord
+				when ";"
+					vars[varp] = STDIN.gets.to_i
+				when ">"
+					dirx = 1
+				when "<"
+					dirx = -1
+				when "^"
+					diry = -1
+				when "!"
+					dirx = diry = 0
+					if last_stand_still then
+						# Standing still for 2 turns, assume end of program
+						exit 0
+					else
+						last_stand_still = true
+					end
+				when "["
+					skip = 2 if vars[varp] == 0
+				when "@"
+					dirx = -dirx
+				when "%"
+					recording_str = false
+					loaded_string = ""
+				when "*"
+					recording_str = true
+				when "]"
+					recording_str = false
+				when "$"
+					print "#{loaded_string} "
+			end
+		else
+			if code[posy][posx] == "]" then
+				recording_str = false
+			else
+				loaded_string += code[posy][posx]
+			end
 		end
 	end
   while code[posy][posx].nil?
