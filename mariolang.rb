@@ -88,11 +88,13 @@ loop {
 				when "]"
 					recording_str = false
 				when "$"
-					print "#{loaded_string} "
+					print "#{loaded_string}"
 			end
 		else
 			if code[posy][posx] == "]" then
 				recording_str = false
+			elsif code[posy][posx] == "_" then
+				loaded_string += "\n"
 			else
 				loaded_string += code[posy][posx]
 			end
